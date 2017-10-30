@@ -13,16 +13,19 @@
 #define ADAFRUITIO_FONA_H
 
 #include "Arduino.h"
-#include <SoftwareSerial.h>
+// #include <SoftwareSerial.h>
 #include "Adafruit_MQTT.h"
 #include "Adafruit_FONA.h"
 #include "AdafruitIO.h"
 #include "Adafruit_MQTT_FONA.h"
 
-#define FONA_RX  9
-#define FONA_TX  8
-#define FONA_RST 4
-#define FONA_RI  7
+// #define FONA_RX  9
+// #define FONA_TX  8
+
+// deliberately map RST and RI to pins brought out on the Feather M0 Basic Proto
+// which we shall connect to the FONA GSM + GPS breakout
+#define FONA_RST 5
+#define FONA_RI  6
 #define FONA_BAUD 4800
 
 // all logic in .h to avoid auto compile
@@ -31,7 +34,8 @@ class AdafruitIO_FONA : public AdafruitIO {
   public:
     AdafruitIO_FONA(const char *user, const char *key):AdafruitIO(user, key)
     {
-      _serial = new SoftwareSerial(FONA_TX, FONA_RX);
+      // _serial = new SoftwareSerial(FONA_TX, FONA_RX);
+      _serial = &Serial1;
       _fona = new Adafruit_FONA(FONA_RST);
       _mqtt = new Adafruit_MQTT_FONA(_fona, _host, _mqtt_port);
       _packetread_timeout = 500;
@@ -42,7 +46,7 @@ class AdafruitIO_FONA : public AdafruitIO {
       _fona->setGPRSNetworkSettings(apn, username, password);
     }
 
-    aio_status_t AdafruitIO_FONA::networkStatus()
+    aio_status_t networkStatus()
     {
       // return if in a failed state
       if(_status == AIO_NET_CONNECT_FAILED)
@@ -68,7 +72,8 @@ class AdafruitIO_FONA : public AdafruitIO {
   protected:
     uint16_t _mqtt_port = 1883;
 
-    SoftwareSerial *_serial;
+    // SoftwareSerial *_serial;
+    HardwareSerial *_serial;
     Adafruit_FONA *_fona;
 
     void _connect()
